@@ -1,1 +1,1 @@
-# model-vis
+# model-viz
