@@ -1,2 +1,4 @@
 pre-commit
 h5py
+numpy
+h5py
