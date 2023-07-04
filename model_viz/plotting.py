@@ -34,7 +34,7 @@ class Histogram2D(BasePlotter):
         x_title = kwargs.get("x_title", "Time")
         y_title = kwargs.get("y_title", "Value")
 
-        return go.Figure(
+        fig = go.Figure(
             go.Histogram2d(
                 x=x,
                 y=y,
@@ -46,3 +46,13 @@ class Histogram2D(BasePlotter):
             xaxis_title=x_title,
             yaxis_title=y_title,
         )
+
+        if self.empirical_data is not None:
+            fig.add_trace(
+                go.Scatter(
+                    x=np.arange(self.empirical_data.shape[0]),
+                    y=self.empirical_data,
+                )
+            )
+
+        return fig
