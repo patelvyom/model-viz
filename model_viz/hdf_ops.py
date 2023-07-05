@@ -17,10 +17,10 @@ class HDFReader:
         self.__data = self.hdf
 
     def __getitem__(self, key):
-        return self.data[key]
+        return self.__data[key]
 
     def __len__(self):
-        return len(self.data)
+        return len(self.__data)
 
     def __repr__(self):
         return f"HDFReader(name={self.name}, path={self.path}, mode={self.mode})"
