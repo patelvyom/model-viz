@@ -6,6 +6,8 @@ import numpy as np
 
 class BasePlotter:
     name = "BasePlotter"
+    fig = None
+    title = None
 
     def __init__(self):
         self.data = None
@@ -13,6 +15,11 @@ class BasePlotter:
 
     def create_plot(self, **kwargs):
         raise NotImplementedError
+
+    def export_plot(self):
+        return self.fig.write_image(
+            f"{self.title}.pdf", engine="kaleido", width=2560, height=1080
+        )
 
 
 class Histogram2D(BasePlotter):
@@ -29,11 +36,11 @@ class Histogram2D(BasePlotter):
         Returns:
             go.Figure: Plotly figure
         """
-        x = np.tile(np.arange(self.data.shape[1]), self.data.shape[0])
-        y = self.data.flatten()
-        title = kwargs.get("title", "Histogram2D")
+        self.title = kwargs.get("title", "Histogram2D")
         x_title = kwargs.get("x_title", "Time")
         y_title = kwargs.get("y_title", "Value")
+        x = np.tile(np.arange(self.data.shape[1]), self.data.shape[0])
+        y = self.data.flatten()
 
         fig = go.Figure(
             go.Histogram2d(
@@ -43,7 +50,7 @@ class Histogram2D(BasePlotter):
                 histfunc="count",
             )
         ).update_layout(
-            title=title,
+            title=self.title,
             xaxis_title=x_title,
             yaxis_title=y_title,
         )
@@ -57,6 +64,7 @@ class Histogram2D(BasePlotter):
                 )
             )
 
+        self.fig = fig
         return fig
 
 
@@ -75,19 +83,21 @@ class BoxPlotOverTime(BasePlotter):
             go.Figure: Plotly figure
         """
 
-        title = kwargs.get("title", "BoxPlotOverTime")
+        self.title = kwargs.get("title", "BoxPlotOverTime")
         x_title = kwargs.get("x_title", "Time")
         y_title = kwargs.get("y_title", "Value")
+        x = np.tile(np.arange(self.data.shape[1]), self.data.shape[0])
+        y = self.data.flatten()
 
         fig = go.Figure(
             go.Box(
-                x=np.tile(np.arange(self.data.shape[1]), self.data.shape[0]),
-                y=self.data.flatten(),
+                x=x,
+                y=y,
                 boxpoints=False,
                 showlegend=False,
             )
         ).update_layout(
-            title=title,
+            title=self.title,
             xaxis_title=x_title,
             yaxis_title=y_title,
         )
@@ -101,5 +111,5 @@ class BoxPlotOverTime(BasePlotter):
                     showlegend=False,
                 )
             )
-
+        self.fig = fig
         return fig
