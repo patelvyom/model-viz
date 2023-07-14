@@ -1,17 +1,34 @@
 import sys
+import os
 import model_viz
 import dash
 from dash import Dash, html, dcc, Input, Output
 from itertools import chain
 import functools
 import dash_bootstrap_components as dbc
-
+from PyPDF2 import PdfMerger
+from datetime import datetime
 
 graph_types = [
     {"label": "2D-Histogram", "value": "2d_hist"},
     {"label": "Boxplot over Time", "value": "boxplot_over_time"},
 ]
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.PULSE])
+
+
+def merge_pdf_files(files, output_file):
+    """Merge multiple PDF files into one PDF file
+
+    Args:
+        files (list): List of PDF files to merge
+        output_file (str): Output file name
+    """
+
+    merger = PdfMerger()
+    for file in files:
+        merger.append(file)
+    merger.write(output_file)
+    merger.close()
 
 
 def generate_plots(hdf_path, graph_type):
@@ -47,6 +64,7 @@ def main(argv):
         [
             html.Div(
                 [
+                    html.Br(),
                     html.H1("Model-Viz"),
                     html.Hr(),
                     dcc.Dropdown(
@@ -56,16 +74,16 @@ def main(argv):
                     ),
                     html.Br(),
                     dbc.Button(
-                        "Export", color="primary", id="export", class_name="me-1"
+                        "Export Plots", color="primary", id="export", class_name="me-1"
                     ),
-                    html.Div(id="figures"),
+                    html.Div(id="plots"),
                 ]
             )
         ],
         fluid=True,
     )
 
-    @app.callback(Output("figures", "children"), Input("graph_type", "value"))
+    @app.callback(Output("plots", "children"), Input("graph_type", "value"))
     @functools.lru_cache(maxsize=32)
     def update_graph(graph_type):
         if graph_type is not None:
@@ -81,7 +99,10 @@ def main(argv):
     )
     def export_plots(graph_type, n_clicks):
         if graph_type is not None and n_clicks is not None:
-            [plot.export_plot() for plot in generate_plots(argv[0], graph_type)]
+            files = [plot.export_plot() for plot in generate_plots(argv[0], graph_type)]
+            merge_pdf_files(
+                files, f'output/{datetime.now().strftime("%Y-%m-%d")}_plots.pdf'
+            )
 
     app.run_server(debug=True)
 

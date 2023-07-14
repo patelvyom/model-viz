@@ -1,5 +1,7 @@
 import plotly.graph_objects as go
 import numpy as np
+from datetime import datetime
+import os
 
 # TODO: Add a ConfigParser to read in config file
 
@@ -17,9 +19,13 @@ class BasePlotter:
         raise NotImplementedError
 
     def export_plot(self):
-        return self.fig.write_image(
-            f"{self.title}.pdf", engine="kaleido", width=2560, height=1080
-        )
+        dir = os.path.join("output", datetime.now().strftime("%Y-%m-%d"))
+        path = os.path.join(dir, f"{self.title}.pdf")
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        self.fig.write_image(path, engine="kaleido", width=2560, height=1080)
+
+        return path
 
 
 class Histogram2D(BasePlotter):
