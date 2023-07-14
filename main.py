@@ -4,12 +4,14 @@ import dash
 from dash import Dash, html, dcc, Input, Output
 from itertools import chain
 import functools
+import dash_bootstrap_components as dbc
+
 
 graph_types = [
     {"label": "2D-Histogram", "value": "2d_hist"},
     {"label": "Boxplot over Time", "value": "boxplot_over_time"},
 ]
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 
 def generate_plots(hdf_path, graph_type):
@@ -41,15 +43,26 @@ def generate_plots(hdf_path, graph_type):
 
 
 def main(argv):
-    app.layout = html.Div(
+    app.layout = dbc.Container(
         [
-            html.H1("Model-Viz"),
-            dcc.Dropdown(
-                options=graph_types, placeholder="Select Graph Type", id="graph_type"
-            ),
-            html.Button("Export", id="export"),
-            html.Div(id="figures"),
-        ]
+            html.Div(
+                [
+                    html.H1("Model-Viz"),
+                    html.Hr(),
+                    dcc.Dropdown(
+                        options=graph_types,
+                        placeholder="Select Graph Type",
+                        id="graph_type",
+                    ),
+                    html.Br(),
+                    dbc.Button(
+                        "Export", color="primary", id="export", class_name="me-1"
+                    ),
+                    html.Div(id="figures"),
+                ]
+            )
+        ],
+        fluid=True,
     )
 
     @app.callback(Output("figures", "children"), Input("graph_type", "value"))

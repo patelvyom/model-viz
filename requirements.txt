@@ -2,3 +2,5 @@ pre-commit
 h5py
 numpy
 h5py
+kaleido
+dash_bootstrap_components
