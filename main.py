@@ -32,6 +32,19 @@ def merge_pdf_files(files, output_file):
 
 
 def generate_plots(hdf_path, graph_type):
+    """Generate plots from HDF5 file and return list of plots
+
+    Args:
+        hdf_path (str): Path to HDF5 file
+        graph_type (str): Type of graph to generate
+
+    Raises:
+        NotImplementedError: If graph type is not implemented
+
+    Returns:
+        list: List of plots where each plot is a Plotly figure
+    """
+    print("[main.py] Generating plots from HDF5 file...")
     reader = model_viz.hdf_ops.HDFReader("reader", hdf_path)
     stocks = reader.get_iterator("stocks")
     stocks_with_empirical_data = reader.get_iterator("stocks_with_empirical_data")
@@ -45,7 +58,6 @@ def generate_plots(hdf_path, graph_type):
 
     for stock in chain(stocks_with_empirical_data, stocks):
         title = stock.name.split("/")[-1]
-        print(f"Creating plot for {title}")
         data = stock["model_values"][:]
         empirical_data = (
             stock["empirical_values"][:].flatten()
@@ -53,7 +65,7 @@ def generate_plots(hdf_path, graph_type):
             else None
         )
         plot = plotter(data=data, empirical_data=empirical_data)
-        plot.create_plot(title=title, x_title="Time", y_title="Value")
+        plot.create_plot(title=title)
         plots.append(plot)
 
     return plots

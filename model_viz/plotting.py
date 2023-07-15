@@ -1,9 +1,7 @@
 import plotly.graph_objects as go
 import numpy as np
-from datetime import datetime
 import os
-
-# TODO: Add a ConfigParser to read in config file
+import model_viz.config as config
 
 
 class BasePlotter:
@@ -19,12 +17,16 @@ class BasePlotter:
         raise NotImplementedError
 
     def export_plot(self):
-        dir = os.path.join("output", datetime.now().strftime("%Y-%m-%d"))
-        path = os.path.join(dir, f"{self.title}.pdf")
-        if not os.path.exists(dir):
-            os.makedirs(dir)
-        self.fig.write_image(path, engine="kaleido", width=2560, height=1080)
-
+        path = os.path.join(
+            config.Plotter.output_dir,
+            f"{self.title}.{config.Plotter.output_file_format}",
+        )
+        self.fig.write_image(
+            path,
+            engine=config.Plotter.export_engine,
+            width=config.Plotter.width,
+            height=config.Plotter.height,
+        )
         return path
 
 
@@ -42,9 +44,9 @@ class Histogram2D(BasePlotter):
         Returns:
             go.Figure: Plotly figure
         """
-        self.title = kwargs.get("title", "Histogram2D")
-        x_title = kwargs.get("x_title", "Time")
-        y_title = kwargs.get("y_title", "Value")
+        self.title = kwargs.get("title", config.Histogram2D.title)
+        x_title = kwargs.get("x_title", config.Histogram2D.x_title)
+        y_title = kwargs.get("y_title", config.Histogram2D.y_title)
         x = np.tile(np.arange(self.data.shape[1]), self.data.shape[0])
         y = self.data.flatten()
 
@@ -52,8 +54,11 @@ class Histogram2D(BasePlotter):
             go.Histogram2d(
                 x=x,
                 y=y,
-                colorbar=dict(title="Count", titleside="right"),
-                histfunc="count",
+                colorbar=dict(
+                    title=config.Histogram2D.colorbar_title,
+                    titleside=config.Histogram2D.colorbar_titleside,
+                ),
+                histfunc=config.Histogram2D.histfunc,
             )
         ).update_layout(
             title=self.title,
@@ -66,7 +71,7 @@ class Histogram2D(BasePlotter):
                 go.Scatter(
                     x=np.arange(self.empirical_data.shape[0]),
                     y=self.empirical_data,
-                    mode="markers",
+                    mode=config.Histogram2D.scatter_mode,
                 )
             )
 
@@ -89,9 +94,9 @@ class BoxPlotOverTime(BasePlotter):
             go.Figure: Plotly figure
         """
 
-        self.title = kwargs.get("title", "BoxPlotOverTime")
-        x_title = kwargs.get("x_title", "Time")
-        y_title = kwargs.get("y_title", "Value")
+        self.title = kwargs.get("title", config.Histogram2D.title)
+        x_title = kwargs.get("x_title", config.Histogram2D.x_title)
+        y_title = kwargs.get("y_title", config.Histogram2D.y_title)
         x = np.tile(np.arange(self.data.shape[1]), self.data.shape[0])
         y = self.data.flatten()
 
@@ -99,8 +104,8 @@ class BoxPlotOverTime(BasePlotter):
             go.Box(
                 x=x,
                 y=y,
-                boxpoints=False,
-                showlegend=False,
+                boxpoints=config.BoxPlotOverTime.boxpoints,
+                showlegend=config.BoxPlotOverTime.showlegend,
             )
         ).update_layout(
             title=self.title,
@@ -113,8 +118,8 @@ class BoxPlotOverTime(BasePlotter):
                 go.Scatter(
                     x=np.arange(self.empirical_data.shape[0]),
                     y=self.empirical_data,
-                    mode="markers",
-                    showlegend=False,
+                    mode=config.BoxPlotOverTime.scatter_mode,
+                    showlegend=config.BoxPlotOverTime.showlegend,
                 )
             )
         self.fig = fig
