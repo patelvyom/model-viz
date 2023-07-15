@@ -8,6 +8,7 @@ import functools
 import dash_bootstrap_components as dbc
 from PyPDF2 import PdfMerger
 from datetime import datetime
+from typing import List
 
 graph_types = [
     {"label": "2D-Histogram", "value": "2d_hist"},
@@ -16,7 +17,7 @@ graph_types = [
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.PULSE])
 
 
-def merge_pdf_files(files, output_file):
+def merge_pdf_files(files: List[str], output_file: str) -> None:
     """Merge multiple PDF files into one PDF file
 
     Args:
@@ -31,7 +32,9 @@ def merge_pdf_files(files, output_file):
     merger.close()
 
 
-def generate_plots(hdf_path, graph_type):
+def generate_plots(
+    hdf_path: str, graph_type: str
+) -> List[model_viz.plotting.BasePlotter]:
     """Generate plots from HDF5 file and return list of plots
 
     Args:

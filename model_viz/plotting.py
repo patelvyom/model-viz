@@ -5,7 +5,7 @@ import model_viz.config as config
 
 
 class BasePlotter:
-    name = "BasePlotter"
+    name: str = "BasePlotter"
     fig = None
     title = None
 
@@ -16,7 +16,7 @@ class BasePlotter:
     def create_plot(self, **kwargs):
         raise NotImplementedError
 
-    def export_plot(self):
+    def export_plot(self) -> str:
         path = os.path.join(
             config.Plotter.output_dir,
             f"{self.title}.{config.Plotter.output_file_format}",
@@ -38,7 +38,7 @@ class Histogram2D(BasePlotter):
         self.data = data
         self.empirical_data = empirical_data
 
-    def create_plot(self, **kwargs):
+    def create_plot(self, **kwargs) -> go.Figure:
         """Create 2D histogram plot from samples and overlay empirical data if provided.
 
         Returns:
@@ -87,7 +87,7 @@ class BoxPlotOverTime(BasePlotter):
         self.data = data
         self.empirical_data = empirical_data
 
-    def create_plot(self, **kwargs):
+    def create_plot(self, **kwargs) -> go.Figure:
         """Create a box plot over time overlayed with empirical data if provided.
 
         Returns:
