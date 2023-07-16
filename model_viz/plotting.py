@@ -59,6 +59,7 @@ class Histogram2D(BasePlotter):
                     titleside=config.Histogram2D.colorbar_titleside,
                 ),
                 histfunc=config.Histogram2D.histfunc,
+                colorscale=config.Histogram2D.colorscale,
             )
         ).update_layout(
             title=self.title,

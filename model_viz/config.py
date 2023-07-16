@@ -37,6 +37,7 @@ class Histogram2D(Plotter):
     colorbar_titleside: str = configuration.get("HISTOGRAM2D", "colorbar_titleside")
     histfunc: str = configuration.get("HISTOGRAM2D", "histfunc")
     scatter_mode: str = configuration.get("HISTOGRAM2D", "scatter_mode")
+    colorscale: str = configuration.get("HISTOGRAM2D", "colorscale")
 
 
 class BoxPlotOverTime(Plotter):
