@@ -1,6 +1,7 @@
 import sys
 import os
 import model_viz
+import model_viz.config as config
 import dash
 from dash import Dash, html, dcc, Input, Output
 from itertools import chain
@@ -140,7 +141,7 @@ def main(argv):
             elif active_tab == "stocks":
                 iterator = get_iterator(argv[0], "stocks")
             return [
-                dcc.Graph(figure=plot.fig)
+                dcc.Graph(figure=plot.fig, config={"scrollZoom": True})
                 for plot in generate_plots(iterator, graph_type)
             ]
 
@@ -158,9 +159,7 @@ def main(argv):
             files = [
                 plot.export_plot() for plot in generate_plots(iterator, graph_type)
             ]
-            merge_pdf_files(
-                files, f'output/{datetime.now().strftime("%Y-%m-%d")}_plots.pdf'
-            )
+            merge_pdf_files(files, config.output_filename)
 
     app.run_server(debug=True)
 
