@@ -2,6 +2,9 @@ import plotly.graph_objects as go
 import numpy as np
 import os
 import model_viz.config as config
+import datashader as ds
+import pandas as pd
+import plotly.express as px
 
 
 class BasePlotter:
@@ -49,19 +52,17 @@ class Histogram2D(BasePlotter):
         y_title = kwargs.get("y_title", config.Histogram2D.y_title)
         x = np.tile(np.arange(self.data.shape[1]), self.data.shape[0])
         y = self.data.flatten()
+        df = pd.DataFrame({"x": x, "y": y})
 
-        fig = go.Figure(
-            go.Histogram2d(
-                x=x,
-                y=y,
-                colorbar=dict(
-                    title=config.Histogram2D.colorbar_title,
-                    titleside=config.Histogram2D.colorbar_titleside,
-                ),
-                histfunc=config.Histogram2D.histfunc,
-                colorscale=config.Histogram2D.colorscale,
-            )
-        ).update_layout(
+        cvs = ds.Canvas(plot_height=100, plot_width=100)
+        agg = cvs.points(df, "x", "y", ds.count())
+        zero_mask = agg.values == 0
+        agg.values = np.log10(agg.values, where=np.logical_not(zero_mask))
+        agg.values[zero_mask] = np.nan
+
+        fig = px.imshow(agg, origin="lower")
+        fig.update_layout(
+            coloraxis_colorbar=dict(title="Count", tickprefix="1.e"),
             title=self.title,
             xaxis_title=x_title,
             yaxis_title=y_title,
@@ -75,7 +76,6 @@ class Histogram2D(BasePlotter):
                     mode=config.Histogram2D.scatter_mode,
                 )
             )
-
         self.fig = fig
         return fig
 
