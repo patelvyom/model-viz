@@ -8,7 +8,8 @@ import functools
 import dash_bootstrap_components as dbc
 from PyPDF2 import PdfMerger
 from datetime import datetime
-from typing import List
+from typing import List, Iterator
+import numpy as np
 
 graph_types = [
     {"label": "2D-Histogram", "value": "2d_hist"},
@@ -32,8 +33,22 @@ def merge_pdf_files(files: List[str], output_file: str) -> None:
     merger.close()
 
 
+def get_iterator(hdf_path: str, group: str) -> Iterator[np.ndarray]:
+    """Returns iterator for HDF5 group
+
+    Args:
+        hdf_path (str): Path to HDF5 file
+        group (str): Group name
+
+    Returns:
+        model_viz.hdf_ops.HDFReader: Iterator for HDF5 group
+    """
+    reader = model_viz.hdf_ops.HDFReader("reader", hdf_path)
+    return reader.get_iterator(group)
+
+
 def generate_plots(
-    hdf_path: str, graph_type: str
+    iterator: Iterator[np.ndarray], graph_type: str
 ) -> List[model_viz.plotting.BasePlotter]:
     """Generate plots from HDF5 file and return list of plots
 
@@ -47,10 +62,7 @@ def generate_plots(
     Returns:
         list: List of plots where each plot is a Plotly figure
     """
-    print("[main.py] Generating plots from HDF5 file...")
-    reader = model_viz.hdf_ops.HDFReader("reader", hdf_path)
-    stocks = reader.get_iterator("stocks")
-    stocks_with_empirical_data = reader.get_iterator("stocks_with_empirical_data")
+    print("[main.py] Generating plots")
     plots = []
     if graph_type == "2d_hist":
         plotter = model_viz.plotting.Histogram2D
@@ -59,7 +71,7 @@ def generate_plots(
     else:
         raise NotImplementedError(f"Graph type {graph_type} not implemented")
 
-    for stock in chain(stocks_with_empirical_data, stocks):
+    for stock in iterator:
         title = stock.name.split("/")[-1]
         data = stock["model_values"][:]
         empirical_data = (
@@ -75,6 +87,23 @@ def generate_plots(
 
 
 def main(argv):
+    tabs = html.Div(
+        [
+            dbc.Tabs(
+                [
+                    dbc.Tab(
+                        label="Stocks with Empirical Data",
+                        tab_id="stocks_with_empirical_data",
+                    ),
+                    dbc.Tab(label="Stocks", tab_id="stocks"),
+                ],
+                id="tabs",
+                active_tab="stocks_with_empirical_data",
+            ),
+            html.Div(id="tab_content"),
+        ]
+    )
+
     app.layout = dbc.Container(
         [
             html.Div(
@@ -91,20 +120,28 @@ def main(argv):
                     dbc.Button(
                         "Export Plots", color="primary", id="export", class_name="me-1"
                     ),
-                    html.Div(id="plots"),
+                    tabs,
                 ]
             )
         ],
         fluid=True,
     )
 
-    @app.callback(Output("plots", "children"), Input("graph_type", "value"))
+    @app.callback(
+        Output("tab_content", "children"),
+        Input("graph_type", "value"),
+        Input("tabs", "active_tab"),
+    )
     @functools.lru_cache(maxsize=32)
-    def update_graph(graph_type):
+    def update_graph(graph_type, active_tab):
         if graph_type is not None:
+            if active_tab == "stocks_with_empirical_data":
+                iterator = get_iterator(argv[0], "stocks_with_empirical_data")
+            elif active_tab == "stocks":
+                iterator = get_iterator(argv[0], "stocks")
             return [
                 dcc.Graph(figure=plot.fig)
-                for plot in generate_plots(argv[0], graph_type)
+                for plot in generate_plots(iterator, graph_type)
             ]
 
     @app.callback(
@@ -114,7 +151,13 @@ def main(argv):
     )
     def export_plots(graph_type, n_clicks):
         if graph_type is not None and n_clicks is not None:
-            files = [plot.export_plot() for plot in generate_plots(argv[0], graph_type)]
+            iterator = chain(
+                get_iterator(argv[0], "stocks_with_empirical_data"),
+                get_iterator(argv[0], "stocks"),
+            )
+            files = [
+                plot.export_plot() for plot in generate_plots(iterator, graph_type)
+            ]
             merge_pdf_files(
                 files, f'output/{datetime.now().strftime("%Y-%m-%d")}_plots.pdf'
             )
