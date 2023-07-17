@@ -98,7 +98,7 @@ class BoxPlotOverTime(BasePlotter):
         self.data = data
         self.empirical_data = empirical_data
 
-    def _pre_compute_boxplot_stats(self) -> np.ndarray:
+    def _pre_compute_boxplot_stats(self) -> dict[str, np.ndarray]:
         """Compute boxplot aggregation statistics over time.
 
         Returns:
