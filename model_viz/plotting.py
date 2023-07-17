@@ -98,6 +98,28 @@ class BoxPlotOverTime(BasePlotter):
         self.data = data
         self.empirical_data = empirical_data
 
+    def _pre_compute_boxplot_stats(self) -> np.ndarray:
+        """Compute boxplot aggregation statistics over time.
+
+        Returns:
+            np.array: array of computed stats
+        """
+        stats = []
+        for i in range(self.data.shape[1]):
+            y = self.data[:, i]
+            stats.append(
+                np.array(
+                    [
+                        np.min(y),
+                        np.percentile(y, 25),
+                        np.median(y),
+                        np.percentile(y, 75),
+                        np.max(y),
+                    ]
+                )
+            )
+        return np.array(stats)
+
     def create_plot(self, **kwargs) -> go.Figure:
         """Create a box plot over time overlayed with empirical data if provided.
 
@@ -108,21 +130,25 @@ class BoxPlotOverTime(BasePlotter):
         self.title = kwargs.get("title", config.Histogram2D.title)
         x_title = kwargs.get("x_title", config.Histogram2D.x_title)
         y_title = kwargs.get("y_title", config.Histogram2D.y_title)
-        x = np.tile(np.arange(self.data.shape[1]), self.data.shape[0])
-        y = self.data.flatten()
+
+        stats = self._pre_compute_boxplot_stats()
+        lower_fence = stats[:, 0]
+        q1 = stats[:, 1]
+        median = stats[:, 2]
+        q3 = stats[:, 3]
+        upper_fence = stats[:, 4]
 
         fig = go.Figure(
             go.Box(
-                x=x,
-                y=y,
+                q1=q1,
+                q3=q3,
+                median=median,
+                upperfence=upper_fence,
+                lowerfence=lower_fence,
                 boxpoints=config.BoxPlotOverTime.boxpoints,
                 showlegend=config.BoxPlotOverTime.showlegend,
             )
-        ).update_layout(
-            title=self.title,
-            xaxis_title=x_title,
-            yaxis_title=y_title,
-        )
+        ).update_layout(title=self.title, xaxis_title=x_title, yaxis_title=y_title)
 
         if self.empirical_data is not None:
             fig.add_trace(
