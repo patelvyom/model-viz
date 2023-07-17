@@ -1,7 +1,7 @@
-pre-commit
-h5py
-numpy
-h5py
-kaleido
-dash_bootstrap_components
-pyPDF2
+h5py>=3.7.0
+numpy>=1.24.3
+pyPDF2>=3.0.1
+dash>=2.11.0
+plotly>=5.15.0
+datashader>=0.15.0
+pandas>=1.5.3
