@@ -101,7 +101,7 @@ def main(argv):
                 id="tabs",
                 active_tab="stocks_with_empirical_data",
             ),
-            html.Div(id="tab_content"),
+            dbc.Spinner(html.Div(id="tab_content")),
         ]
     )
 
@@ -118,8 +118,13 @@ def main(argv):
                         id="graph_type",
                     ),
                     html.Br(),
-                    dbc.Button(
-                        "Export Plots", color="primary", id="export", class_name="me-1"
+                    dbc.Spinner(
+                        dbc.Button(
+                            "Export Plots",
+                            color="primary",
+                            id="export",
+                            class_name="me-1",
+                        )
                     ),
                     tabs,
                 ]
@@ -140,6 +145,8 @@ def main(argv):
                 iterator = get_iterator(argv[0], "stocks_with_empirical_data")
             elif active_tab == "stocks":
                 iterator = get_iterator(argv[0], "stocks")
+            else:
+                raise NotImplementedError(f"Active tab {active_tab} not implemented")
             return [
                 dcc.Graph(figure=plot.fig)
                 for plot in generate_plots(iterator, graph_type)

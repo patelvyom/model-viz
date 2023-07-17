@@ -132,7 +132,7 @@ class BoxPlotOverTime(BasePlotter):
                     mode=config.BoxPlotOverTime.scatter_mode,
                     showlegend=config.BoxPlotOverTime.showlegend,
                     name="Empirical Data",
-                    marker_color=config.Histogram2D.scatter_color,
+                    marker_color=config.BoxPlotOverTime.scatter_color,
                 )
             )
         self.fig = fig
