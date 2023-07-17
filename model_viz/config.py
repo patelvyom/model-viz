@@ -10,11 +10,8 @@ config_file = os.path.join(MODEL_VIZ_BASE_DIR, "config.ini")
 configuration = configparser.ConfigParser()
 configuration.read(config_file)
 output_dir = configuration.get("APP", "output_dir")
-output_file_name: str = os.path.join(
-    configuration.get(
-        "APP", "output_filename", fallback=f"model_viz_{runtime_str}.pdf"
-    ),
-    runtime_str,
+output_filename: str = os.path.join(
+    output_dir, f'{runtime_str}_{configuration.get("APP", "output_filename")}.pdf'
 )
 
 
@@ -37,6 +34,7 @@ class Histogram2D(Plotter):
     colorbar_titleside: str = configuration.get("HISTOGRAM2D", "colorbar_titleside")
     histfunc: str = configuration.get("HISTOGRAM2D", "histfunc")
     scatter_mode: str = configuration.get("HISTOGRAM2D", "scatter_mode")
+    colorscale: str = configuration.get("HISTOGRAM2D", "colorscale")
 
 
 class BoxPlotOverTime(Plotter):
