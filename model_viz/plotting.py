@@ -143,12 +143,13 @@ class BoxPlotOverTime(BasePlotter):
                 q1=q1,
                 q3=q3,
                 median=median,
-                upperfence=upper_fence,
-                lowerfence=lower_fence,
                 boxpoints=config.BoxPlotOverTime.boxpoints,
                 showlegend=config.BoxPlotOverTime.showlegend,
             )
         ).update_layout(title=self.title, xaxis_title=x_title, yaxis_title=y_title)
+
+        if config.BoxPlotOverTime.plot_fences:
+            fig.update_traces(upperfence=upper_fence, lowerfence=lower_fence)
 
         if self.empirical_data is not None:
             fig.add_trace(

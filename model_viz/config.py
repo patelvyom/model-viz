@@ -46,6 +46,7 @@ class BoxPlotOverTime(Plotter):
     showlegend: bool = configuration.getboolean("BOXPLOTOVERTIME", "showlegend")
     scatter_mode: str = configuration.get("BOXPLOTOVERTIME", "scatter_mode")
     scatter_color: str = configuration.get("BOXPLOTOVERTIME", "scatter_color")
+    plot_fences: bool = configuration.getboolean("BOXPLOTOVERTIME", "plot_fences")
 
 
 # HDFReader Settings
