@@ -9,7 +9,7 @@ git clone git@github.com:patelvyom/model-viz.git
 ```
 Then, create a new `miniconda` environment and installed the required packages via `pip`:
 ```
-conda create -n model-viz python=3.10
+conda create -n model-viz python=3.11
 conda activate model-viz
 pip3 install -r requirements.txt
 ```
@@ -20,3 +20,7 @@ The app utilises the `dash` package to create a web app. To run the app, run the
 python3 main.py /path/to/hdf5/file
 ```
 The web app will then be able to be accessed at a local host address.
+
+
+## Development
+Refer to the [contributing.md](contributing.md) file for information on how to contribute to the project.

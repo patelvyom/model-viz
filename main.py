@@ -1,14 +1,12 @@
 import sys
-import os
 import model_viz
 import model_viz.config as config
 import dash
-from dash import Dash, html, dcc, Input, Output
+from dash import html, dcc, Input, Output
 from itertools import chain
 import functools
 import dash_bootstrap_components as dbc
 from PyPDF2 import PdfMerger
-from datetime import datetime
 from typing import List, Iterator
 import numpy as np
 
