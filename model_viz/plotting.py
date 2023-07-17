@@ -104,21 +104,22 @@ class BoxPlotOverTime(BasePlotter):
         Returns:
             np.array: array of computed stats
         """
-        stats = []
-        for i in range(self.data.shape[1]):
-            y = self.data[:, i]
-            stats.append(
-                np.array(
-                    [
-                        np.min(y),
-                        np.percentile(y, 25),
-                        np.median(y),
-                        np.percentile(y, 75),
-                        np.max(y),
-                    ]
-                )
-            )
-        return np.array(stats)
+        stats = np.array(
+            [
+                np.min(self.data, axis=0),
+                np.percentile(self.data, 25, axis=0),
+                np.median(self.data, axis=0),
+                np.percentile(self.data, 75, axis=0),
+                np.max(self.data, axis=0),
+            ]
+        ).T
+        return {
+            "lower_fence": stats[:, 0],
+            "q1": stats[:, 1],
+            "median": stats[:, 2],
+            "q3": stats[:, 3],
+            "upper_fence": stats[:, 4],
+        }
 
     def create_plot(self, **kwargs) -> go.Figure:
         """Create a box plot over time overlayed with empirical data if provided.
@@ -131,25 +132,23 @@ class BoxPlotOverTime(BasePlotter):
         x_title = kwargs.get("x_title", config.Histogram2D.x_title)
         y_title = kwargs.get("y_title", config.Histogram2D.y_title)
 
+        # Pre-compute all stats for faster rendering.
         stats = self._pre_compute_boxplot_stats()
-        lower_fence = stats[:, 0]
-        q1 = stats[:, 1]
-        median = stats[:, 2]
-        q3 = stats[:, 3]
-        upper_fence = stats[:, 4]
 
         fig = go.Figure(
             go.Box(
-                q1=q1,
-                q3=q3,
-                median=median,
+                q1=stats["q1"],
+                q3=stats["q3"],
+                median=stats["median"],
                 boxpoints=config.BoxPlotOverTime.boxpoints,
                 showlegend=config.BoxPlotOverTime.showlegend,
             )
         ).update_layout(title=self.title, xaxis_title=x_title, yaxis_title=y_title)
 
         if config.BoxPlotOverTime.plot_fences:
-            fig.update_traces(upperfence=upper_fence, lowerfence=lower_fence)
+            fig.update_traces(
+                upperfence=stats["upper_fence"], lowerfence=stats["lower_fence"]
+            )
 
         if self.empirical_data is not None:
             fig.add_trace(
