@@ -141,7 +141,7 @@ def main(argv):
             elif active_tab == "stocks":
                 iterator = get_iterator(argv[0], "stocks")
             return [
-                dcc.Graph(figure=plot.fig, config={"scrollZoom": True})
+                dcc.Graph(figure=plot.fig)
                 for plot in generate_plots(iterator, graph_type)
             ]
 

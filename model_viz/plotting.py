@@ -54,15 +54,23 @@ class Histogram2D(BasePlotter):
         y = self.data.flatten()
         df = pd.DataFrame({"x": x, "y": y})
 
+        # Rasterising Hist2D for faster rendering. See https://plotly.com/python/datashader/
         cvs = ds.Canvas(plot_height=100, plot_width=100)
         agg = cvs.points(df, "x", "y", ds.count())
         zero_mask = agg.values == 0
         agg.values = np.log10(agg.values, where=np.logical_not(zero_mask))
         agg.values[zero_mask] = np.nan
 
-        fig = px.imshow(agg, origin="lower")
+        fig = px.imshow(
+            agg,
+            origin="lower",
+            labels={"color": f"Log10({config.Histogram2D.colorbar_title})"},
+        )
         fig.update_layout(
-            coloraxis_colorbar=dict(title="Count", tickprefix="1.e"),
+            coloraxis_colorbar={
+                "title": config.Histogram2D.colorbar_title,
+                "tickprefix": "1.e",
+            },
             title=self.title,
             xaxis_title=x_title,
             yaxis_title=y_title,
@@ -74,6 +82,8 @@ class Histogram2D(BasePlotter):
                     x=np.arange(self.empirical_data.shape[0]),
                     y=self.empirical_data,
                     mode=config.Histogram2D.scatter_mode,
+                    marker_color=config.Histogram2D.scatter_color,
+                    name="Empirical Data",
                 )
             )
         self.fig = fig
@@ -121,6 +131,8 @@ class BoxPlotOverTime(BasePlotter):
                     y=self.empirical_data,
                     mode=config.BoxPlotOverTime.scatter_mode,
                     showlegend=config.BoxPlotOverTime.showlegend,
+                    name="Empirical Data",
+                    marker_color=config.Histogram2D.scatter_color,
                 )
             )
         self.fig = fig
