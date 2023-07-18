@@ -1,12 +1,13 @@
 import sys
+import h5py
 import model_viz
 import model_viz.config as config
+import model_viz.utils as utils
 import dash
 from dash import html, dcc, Input, Output
 from itertools import chain
 import functools
 import dash_bootstrap_components as dbc
-from PyPDF2 import PdfMerger
 from typing import List, Iterator
 import numpy as np
 
@@ -17,22 +18,7 @@ graph_types = [
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.PULSE])
 
 
-def merge_pdf_files(files: List[str], output_file: str) -> None:
-    """Merge multiple PDF files into one PDF file
-
-    Args:
-        files (list): List of PDF files to merge
-        output_file (str): Output file name
-    """
-
-    merger = PdfMerger()
-    for file in files:
-        merger.append(file)
-    merger.write(output_file)
-    merger.close()
-
-
-def get_iterator(hdf_path: str, group: str) -> Iterator[np.ndarray]:
+def get_iterator(hdf_path: str, group: str) -> Iterator[h5py.Group]:
     """Returns iterator for HDF5 group
 
     Args:
@@ -43,16 +29,16 @@ def get_iterator(hdf_path: str, group: str) -> Iterator[np.ndarray]:
         model_viz.hdf_ops.HDFReader: Iterator for HDF5 group
     """
     reader = model_viz.hdf_ops.HDFReader("reader", hdf_path)
-    return reader.get_iterator(group)
+    return reader._get_iterator(group)
 
 
 def generate_plots(
-    iterator: Iterator[np.ndarray], graph_type: str
+    groups: Iterator[h5py.Group], graph_type: str
 ) -> List[model_viz.plotting.BasePlotter]:
     """Generate plots from HDF5 file and return list of plots
 
     Args:
-        hdf_path (str): Path to HDF5 file
+        groups: Iterator of HDF5 groups
         graph_type (str): Type of graph to generate
 
     Raises:
@@ -70,12 +56,12 @@ def generate_plots(
     else:
         raise NotImplementedError(f"Graph type {graph_type} not implemented")
 
-    for stock in iterator:
-        title = stock.name.split("/")[-1]
-        data = stock["model_values"][:]
+    for plotting_group in groups:
+        title = plotting_group.name.split("/")[-1]
+        data = plotting_group["model_values"][:]
         empirical_data = (
-            stock["empirical_values"][:].flatten()
-            if "empirical_values" in stock
+            plotting_group["empirical_values"][:].flatten()
+            if "empirical_values" in plotting_group
             else None
         )
         plot = plotter(data=data, empirical_data=empirical_data)
@@ -164,7 +150,7 @@ def main(argv):
             files = [
                 plot.export_plot() for plot in generate_plots(iterator, graph_type)
             ]
-            merge_pdf_files(files, config.output_filename)
+            utils.merge_pdf_files(files, config.output_filename)
 
     app.run_server(debug=True)
 

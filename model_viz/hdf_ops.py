@@ -52,7 +52,7 @@ class HDFReader:
         for stock in self.__data[group].keys():
             yield self.get_data(group, stock)
 
-    def get_group_iterators(self) -> Dict[str : Iterator[h5py.Group]]:
+    def get_group_iterators(self) -> dict[str, Iterator[h5py.Group]]:
         """
         Return iterators of "plotting_groups" for all groups
         """
