@@ -57,7 +57,7 @@ def generate_plots(
 
 def main(argv):
     reader = hdf_ops.HDFReader("reader", argv[0])
-    plotting_groups = reader.get_group_iterators()
+    plotting_groups = reader.get_groups()
     group_tabs = {
         group: component_factory.DashTab(label=group, component_id=group)
         for group in plotting_groups.keys()
@@ -74,7 +74,7 @@ def main(argv):
                     html.H1("Model-Viz"),
                     html.Hr(),
                     dcc.Dropdown(
-                        options=GRAPH_TYPES.keys(),
+                        options=list(GRAPH_TYPES.keys()),
                         placeholder="Select Graph Type",
                         id="graph_type",
                     ),
