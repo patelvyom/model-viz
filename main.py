@@ -7,10 +7,9 @@ import model_viz.plotting as plotting
 import model_viz.component_factory as component_factory
 import dash
 from dash import html, dcc, Input, Output
-from itertools import chain
 import functools
 import dash_bootstrap_components as dbc
-from typing import List, Iterator
+from typing import List
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.PULSE])
 
@@ -40,12 +39,12 @@ def generate_plots(
 
     plots = []
     plotter = GRAPH_TYPES[graph_type]
-    for plotting_group in groups:
-        title = plotting_group.name.split("/")[-1]
-        data = plotting_group["model_values"][:]
+    for plot_item in groups:
+        title = plot_item.name.split("/")[-1]
+        data = plot_item["data"][:]
         overlay_data = (
-            plotting_group["empirical_values"][:].flatten()
-            if "empirical_values" in plotting_group
+            plot_item["overlay_data"][:].flatten()
+            if "overlay_data" in plot_item
             else None
         )
         plot = plotter(data=data, overlay_data=overlay_data)
@@ -118,13 +117,11 @@ def main(argv):
     )
     def export_plots(graph_type, n_clicks):
         if graph_type is not None and n_clicks is not None:
-            iterator = chain(
-                # get_iterator(argv[0], "stocks_with_empirical_data"),
-                # get_iterator(argv[0], "stocks"),
-            )
-            files = [
-                plot.export_plot() for plot in generate_plots(iterator, graph_type)
-            ]
+            files = []
+            for group in plotting_groups.values():
+                files += [
+                    plot.export_plot() for plot in generate_plots(group, graph_type)
+                ]
             utils.merge_pdf_files(files, config.output_filename)
 
     app.run_server(debug=True)
