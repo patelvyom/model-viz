@@ -19,16 +19,11 @@ class DashComponentFactory:
 class DashTab(DashComponentFactory):
     label: str = None
 
-    def __init__(self, label: str, component_id: str = ""):
+    def __init__(self, label: str, component_id: str):
         super().__init__(component_id)
         self.label = label
-        if self.component_id == "":
-            self.component_id = self._generate_tab_id()
 
-    def _generate_tab_id(self) -> str:
-        return self.label.lower().replace(" ", "_")
-
-    def generate_component(self):
+    def generate_component(self) -> dbc.Tab:
         return dbc.Tab(label=self.label, tab_id=self.component_id)
 
     def __str__(self):
@@ -37,16 +32,18 @@ class DashTab(DashComponentFactory):
 
 class DashTabs(DashComponentFactory):
     tabs: List[DashTab] = None
+    tab_ids: List[str] = None
 
-    def __init__(self, component_id, tabs: List[DashTab]):
+    def __init__(self, component_id: str, tabs: List[DashTab]):
         super().__init__(component_id)
         self.tabs = tabs
+        self.tab_ids = [tab.component_id for tab in tabs]
 
-    def generate_component(self):
+    def generate_component(self) -> dbc.Tabs:
         return dbc.Tabs(
             [tab.generate_component() for tab in self.tabs],
             id=self.component_id,
-            active_tab=self.tabs[0].component_id,
+            active_tab=self.tab_ids[0],
         )
 
     def __str__(self):

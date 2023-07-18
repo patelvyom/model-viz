@@ -3,33 +3,19 @@ import h5py
 import model_viz
 import model_viz.config as config
 import model_viz.utils as utils
+import model_viz.component_factory as component_factory
 import dash
 from dash import html, dcc, Input, Output
 from itertools import chain
 import functools
 import dash_bootstrap_components as dbc
 from typing import List, Iterator
-import numpy as np
 
 graph_types = [
     {"label": "2D-Histogram", "value": "2d_hist"},
     {"label": "Boxplot over Time", "value": "boxplot_over_time"},
 ]
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.PULSE])
-
-
-def get_iterator(hdf_path: str, group: str) -> Iterator[h5py.Group]:
-    """Returns iterator for HDF5 group
-
-    Args:
-        hdf_path (str): Path to HDF5 file
-        group (str): Group name
-
-    Returns:
-        model_viz.hdf_ops.HDFReader: Iterator for HDF5 group
-    """
-    reader = model_viz.hdf_ops.HDFReader("reader", hdf_path)
-    return reader._get_iterator(group)
 
 
 def generate_plots(
@@ -72,22 +58,15 @@ def generate_plots(
 
 
 def main(argv):
-    tabs = html.Div(
-        [
-            dbc.Tabs(
-                [
-                    dbc.Tab(
-                        label="Stocks with Empirical Data",
-                        tab_id="stocks_with_empirical_data",
-                    ),
-                    dbc.Tab(label="Stocks", tab_id="stocks"),
-                ],
-                id="tabs",
-                active_tab="stocks_with_empirical_data",
-            ),
-            dbc.Spinner(html.Div(id="tab_content")),
-        ]
-    )
+    reader = model_viz.hdf_ops.HDFReader("reader", argv[0])
+    plotting_groups = reader.get_group_iterators()
+    group_tabs = {
+        group: component_factory.DashTab(label=group, component_id=group)
+        for group in plotting_groups.keys()
+    }
+    dash_tabs = component_factory.DashTabs(
+        component_id="group_tabs", tabs=list(group_tabs.values())
+    ).generate_component()
 
     app.layout = dbc.Container(
         [
@@ -104,13 +83,14 @@ def main(argv):
                     html.Br(),
                     dbc.Spinner(
                         dbc.Button(
-                            "Export Plots",
+                            "Export All Plots",
                             color="primary",
                             id="export",
                             class_name="me-1",
                         )
                     ),
-                    tabs,
+                    html.Br(),
+                    html.Div([dash_tabs, dbc.Spinner(html.Div(id="tab_content"))]),
                 ]
             )
         ],
@@ -120,21 +100,18 @@ def main(argv):
     @app.callback(
         Output("tab_content", "children"),
         Input("graph_type", "value"),
-        Input("tabs", "active_tab"),
+        Input("group_tabs", "active_tab"),
     )
     @functools.lru_cache(maxsize=32)
     def update_graph(graph_type, active_tab):
         if graph_type is not None:
-            if active_tab == "stocks_with_empirical_data":
-                iterator = get_iterator(argv[0], "stocks_with_empirical_data")
-            elif active_tab == "stocks":
-                iterator = get_iterator(argv[0], "stocks")
+            if active_tab in group_tabs:
+                return [
+                    dcc.Graph(figure=plot.fig, style=config.Plotter.graph_div_style)
+                    for plot in generate_plots(plotting_groups[active_tab], graph_type)
+                ]
             else:
                 raise NotImplementedError(f"Active tab {active_tab} not implemented")
-            return [
-                dcc.Graph(figure=plot.fig, style=config.Plotter.graph_div_style)
-                for plot in generate_plots(iterator, graph_type)
-            ]
 
     @app.callback(
         Output("export", "n_clicks"),
@@ -144,8 +121,8 @@ def main(argv):
     def export_plots(graph_type, n_clicks):
         if graph_type is not None and n_clicks is not None:
             iterator = chain(
-                get_iterator(argv[0], "stocks_with_empirical_data"),
-                get_iterator(argv[0], "stocks"),
+                # get_iterator(argv[0], "stocks_with_empirical_data"),
+                # get_iterator(argv[0], "stocks"),
             )
             files = [
                 plot.export_plot() for plot in generate_plots(iterator, graph_type)
