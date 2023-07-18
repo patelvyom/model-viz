@@ -1,6 +1,6 @@
 import h5py
 from dataclasses import dataclass
-from typing import List, Iterator
+from typing import List, Iterator, Dict
 import numpy as np
 
 
@@ -47,7 +47,17 @@ class HDFReader:
             empirical_data.append(self.__data[f"empirical_data/{data}"])
         return empirical_data
 
-    def get_iterator(self, group) -> Iterator[np.ndarray]:
+    def _get_iterator(self, group) -> Iterator[h5py.Group]:
         """Iterates over stocks"""
         for stock in self.__data[group].keys():
             yield self.get_data(group, stock)
+
+    def get_group_iterators(self) -> Dict[str : Iterator[h5py.Group]]:
+        """
+        Return iterators of "plotting_groups" for all groups
+        """
+        groups = {}
+        for group in self.__data:
+            groups[group.title()] = self._get_iterator(group)
+
+        return groups
