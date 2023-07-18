@@ -1,8 +1,9 @@
 import sys
 import h5py
-import model_viz
 import model_viz.config as config
 import model_viz.utils as utils
+import model_viz.hdf_ops as hdf_ops
+import model_viz.plotting as plotting
 import model_viz.component_factory as component_factory
 import dash
 from dash import html, dcc, Input, Output
@@ -11,16 +12,17 @@ import functools
 import dash_bootstrap_components as dbc
 from typing import List, Iterator
 
-graph_types = [
-    {"label": "2D-Histogram", "value": "2d_hist"},
-    {"label": "Boxplot over Time", "value": "boxplot_over_time"},
-]
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.PULSE])
+
+GRAPH_TYPES = {
+    "Histogram 2D": plotting.Histogram2D,
+    "Boxplot over Time": plotting.BoxPlotOverTime,
+}
 
 
 def generate_plots(
     groups: Iterator[h5py.Group], graph_type: str
-) -> List[model_viz.plotting.BasePlotter]:
+) -> List[plotting.BasePlotter]:
     """Generate plots from HDF5 file and return list of plots
 
     Args:
@@ -33,15 +35,11 @@ def generate_plots(
     Returns:
         list: List of plots where each plot is a Plotly figure
     """
-    print("[main.py] Generating plots")
-    plots = []
-    if graph_type == "2d_hist":
-        plotter = model_viz.plotting.Histogram2D
-    elif graph_type == "boxplot_over_time":
-        plotter = model_viz.plotting.BoxPlotOverTime
-    else:
+    if graph_type not in GRAPH_TYPES:
         raise NotImplementedError(f"Graph type {graph_type} not implemented")
 
+    plots = []
+    plotter = GRAPH_TYPES[graph_type]
     for plotting_group in groups:
         title = plotting_group.name.split("/")[-1]
         data = plotting_group["model_values"][:]
@@ -58,7 +56,7 @@ def generate_plots(
 
 
 def main(argv):
-    reader = model_viz.hdf_ops.HDFReader("reader", argv[0])
+    reader = hdf_ops.HDFReader("reader", argv[0])
     plotting_groups = reader.get_group_iterators()
     group_tabs = {
         group: component_factory.DashTab(label=group, component_id=group)
@@ -76,7 +74,7 @@ def main(argv):
                     html.H1("Model-Viz"),
                     html.Hr(),
                     dcc.Dropdown(
-                        options=graph_types,
+                        options=GRAPH_TYPES.keys(),
                         placeholder="Select Graph Type",
                         id="graph_type",
                     ),
