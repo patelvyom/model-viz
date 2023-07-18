@@ -24,6 +24,10 @@ class Plotter:
     export_engine: str = configuration.get("PLOTTER", "export_engine")
     width: int = configuration.getint("PLOTTER", "width")
     height: int = configuration.getint("PLOTTER", "height")
+    graph_div_style: dict = {
+        "height": configuration.get("PLOTTER", "graph_div_height"),
+        "width": "100%",
+    }
 
 
 class Histogram2D(Plotter):

@@ -146,7 +146,7 @@ def main(argv):
             else:
                 raise NotImplementedError(f"Active tab {active_tab} not implemented")
             return [
-                dcc.Graph(figure=plot.fig)
+                dcc.Graph(figure=plot.fig, style=config.Plotter.graph_div_style)
                 for plot in generate_plots(iterator, graph_type)
             ]
 
