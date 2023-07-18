@@ -14,7 +14,7 @@ class BasePlotter:
 
     def __init__(self):
         self.data = None
-        self.empirical_data = None
+        self.overlay_data = None
 
     def create_plot(self, **kwargs):
         raise NotImplementedError
@@ -36,10 +36,10 @@ class BasePlotter:
 class Histogram2D(BasePlotter):
     name = "Histogram2D"
 
-    def __init__(self, data: np.ndarray, empirical_data=None):
+    def __init__(self, data: np.ndarray, overlay_data=None):
         super().__init__()
         self.data = data
-        self.empirical_data = empirical_data
+        self.overlay_data = overlay_data
 
     def create_plot(self, **kwargs) -> go.Figure:
         """Create 2D histogram plot from samples and overlay empirical data if provided.
@@ -76,14 +76,14 @@ class Histogram2D(BasePlotter):
             yaxis_title=y_title,
         )
 
-        if self.empirical_data is not None:
+        if self.overlay_data is not None:
             fig.add_trace(
                 go.Scatter(
-                    x=np.arange(self.empirical_data.shape[0]),
-                    y=self.empirical_data,
+                    x=np.arange(self.overlay_data.shape[0]),
+                    y=self.overlay_data,
                     mode=config.Histogram2D.scatter_mode,
                     marker_color=config.Histogram2D.scatter_color,
-                    name="Empirical Data",
+                    name=config.Histogram2D.scatter_name,
                 )
             )
         self.fig = fig
@@ -93,10 +93,10 @@ class Histogram2D(BasePlotter):
 class BoxPlotOverTime(BasePlotter):
     name = "BoxPlotOverTime"
 
-    def __init__(self, data: np.ndarray, empirical_data=None):
+    def __init__(self, data: np.ndarray, overlay_data=None):
         super().__init__()
         self.data = data
-        self.empirical_data = empirical_data
+        self.overlay_data = overlay_data
 
     def _pre_compute_boxplot_stats(self) -> dict[str, np.ndarray]:
         """Compute boxplot aggregation statistics over time.
@@ -150,14 +150,14 @@ class BoxPlotOverTime(BasePlotter):
                 upperfence=stats["upper_fence"], lowerfence=stats["lower_fence"]
             )
 
-        if self.empirical_data is not None:
+        if self.overlay_data is not None:
             fig.add_trace(
                 go.Scatter(
-                    x=np.arange(self.empirical_data.shape[0]),
-                    y=self.empirical_data,
+                    x=np.arange(self.overlay_data.shape[0]),
+                    y=self.overlay_data,
                     mode=config.BoxPlotOverTime.scatter_mode,
                     showlegend=config.BoxPlotOverTime.showlegend,
-                    name="Empirical Data",
+                    name=config.BoxPlotOverTime.scatter_name,
                     marker_color=config.BoxPlotOverTime.scatter_color,
                 )
             )

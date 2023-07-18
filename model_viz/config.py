@@ -40,6 +40,7 @@ class Histogram2D(Plotter):
     scatter_mode: str = configuration.get("HISTOGRAM2D", "scatter_mode")
     scatter_color: str = configuration.get("HISTOGRAM2D", "scatter_color")
     colorscale: str = configuration.get("HISTOGRAM2D", "colorscale")
+    scatter_name: str = configuration.get("HISTOGRAM2D", "scatter_name")
 
 
 class BoxPlotOverTime(Plotter):
@@ -51,6 +52,7 @@ class BoxPlotOverTime(Plotter):
     scatter_mode: str = configuration.get("BOXPLOTOVERTIME", "scatter_mode")
     scatter_color: str = configuration.get("BOXPLOTOVERTIME", "scatter_color")
     plot_fences: bool = configuration.getboolean("BOXPLOTOVERTIME", "plot_fences")
+    scatter_name: str = configuration.get("BOXPLOTOVERTIME", "scatter_name")
 
 
 # HDFReader Settings

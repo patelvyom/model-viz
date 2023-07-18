@@ -21,7 +21,7 @@ GRAPH_TYPES = {
 
 
 def generate_plots(
-    groups: Iterator[h5py.Group], graph_type: str
+    groups: list[h5py.Group], graph_type: str
 ) -> List[plotting.BasePlotter]:
     """Generate plots from HDF5 file and return list of plots
 
@@ -43,12 +43,12 @@ def generate_plots(
     for plotting_group in groups:
         title = plotting_group.name.split("/")[-1]
         data = plotting_group["model_values"][:]
-        empirical_data = (
+        overlay_data = (
             plotting_group["empirical_values"][:].flatten()
             if "empirical_values" in plotting_group
             else None
         )
-        plot = plotter(data=data, empirical_data=empirical_data)
+        plot = plotter(data=data, overlay_data=overlay_data)
         plot.create_plot(title=title)
         plots.append(plot)
 
