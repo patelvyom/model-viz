@@ -65,6 +65,7 @@ class Histogram2D(BasePlotter):
             agg,
             origin="lower",
             labels={"color": f"Log10({config.Histogram2D.colorbar_title})"},
+            color_continuous_scale=config.Histogram2D.colorscale,
         )
         fig.update_layout(
             coloraxis_colorbar={
