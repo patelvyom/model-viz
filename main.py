@@ -86,6 +86,7 @@ def main(argv):
                             class_name="me-1",
                         )
                     ),
+                    dcc.Download(id="download"),
                     html.Br(),
                     html.Div([dash_tabs, dbc.Spinner(html.Div(id="tab_content"))]),
                 ]
@@ -112,8 +113,10 @@ def main(argv):
 
     @app.callback(
         Output("export", "n_clicks"),
+        Output("download", "data"),
         Input("graph_type", "value"),
         Input("export", "n_clicks"),
+        prevent_initial_call=True,
     )
     def export_plots(graph_type, n_clicks):
         if graph_type is not None and n_clicks is not None:
@@ -123,6 +126,9 @@ def main(argv):
                     plot.export_plot() for plot in generate_plots(group, graph_type)
                 ]
             utils.merge_pdf_files(files, config.output_filename)
+            return None, dcc.send_file(config.output_filename)
+
+        return None, None
 
     app.run_server(debug=True)
 
