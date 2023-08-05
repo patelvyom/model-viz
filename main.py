@@ -91,16 +91,12 @@ def main(argv):
                     html.Br(),
                     html.Div(dash_tabs),
                     html.Div(
-                        [
-                            html.Div(
-                                id="tab_content_1",
-                                style={"width": "75%", "display": "inline-block"},
-                            ),
-                            html.Div(
-                                id="tab_content_2",
-                                style={"width": "25%", "display": "inline-block"},
-                            ),
-                        ]
+                        id="tab_content_1",
+                        style={"width": "75%", "display": "inline-block"},
+                    ),
+                    html.Div(
+                        id="tab_content_2",
+                        style={"width": "25%", "display": "inline-block"},
                     ),
                 ]
             )
