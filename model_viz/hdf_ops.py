@@ -33,6 +33,6 @@ class HDFReader:
         """
         groups = {}
         for group in self.__data:
-            groups[group.title()] = self._get_group_items(group)
+            groups[group] = self._get_group_items(group)
 
         return groups
