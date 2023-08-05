@@ -6,7 +6,8 @@ import model_viz.hdf_ops as hdf_ops
 import model_viz.plotting as plotting
 import model_viz.component_factory as component_factory
 import dash
-from dash import html, dcc, Input, Output
+from dash import html, dcc, Input, Output, State, MATCH
+import plotly.graph_objects as go
 import functools
 import dash_bootstrap_components as dbc
 from typing import List
@@ -25,7 +26,7 @@ def generate_plots(
     """Generate plots from HDF5 file and return list of plots
 
     Args:
-        groups: Iterator of HDF5 groups
+        groups: List of HDF5 groups
         graph_type (str): Type of graph to generate
 
     Raises:
@@ -56,13 +57,13 @@ def generate_plots(
 
 def main(argv):
     reader = hdf_ops.HDFReader("reader", argv[0])
-    plotting_groups = reader.get_groups()
+    groups_to_plot = reader.get_groups()
     group_tabs = {
         group: component_factory.DashTab(label=group, component_id=group)
-        for group in plotting_groups.keys()
+        for group in groups_to_plot.keys()
     }
     dash_tabs = component_factory.DashTabs(
-        component_id="group_tabs", tabs=list(group_tabs.values())
+        component_id="dash_tabs", tabs=list(group_tabs.values())
     ).generate_component()
 
     app.layout = dbc.Container(
@@ -88,7 +89,19 @@ def main(argv):
                     ),
                     dcc.Download(id="download"),
                     html.Br(),
-                    html.Div([dash_tabs, dbc.Spinner(html.Div(id="tab_content"))]),
+                    html.Div(dash_tabs),
+                    html.Div(
+                        [
+                            html.Div(
+                                id="tab_content_1",
+                                style={"width": "75%", "display": "inline-block"},
+                            ),
+                            html.Div(
+                                id="tab_content_2",
+                                style={"width": "25%", "display": "inline-block"},
+                            ),
+                        ]
+                    ),
                 ]
             )
         ],
@@ -96,20 +109,58 @@ def main(argv):
     )
 
     @app.callback(
-        Output("tab_content", "children"),
+        Output("tab_content_1", "children"),
+        Output("tab_content_2", "children"),
         Input("graph_type", "value"),
-        Input("group_tabs", "active_tab"),
+        Input("dash_tabs", "active_tab"),
     )
     @functools.lru_cache(maxsize=32)
-    def update_graph(graph_type, active_tab):
+    def update_graph1(graph_type, active_tab):
         if graph_type is not None:
             if active_tab in group_tabs:
-                return [
-                    dcc.Graph(figure=plot.fig, style=config.Plotter.graph_div_style)
-                    for plot in generate_plots(plotting_groups[active_tab], graph_type)
-                ]
+                dash_graphs_1 = []
+                dash_graphs_2 = []
+                for plot in generate_plots(groups_to_plot[active_tab], graph_type):
+                    dash_graphs_1.append(
+                        dcc.Graph(
+                            id={"type": "dcc_go_1", "index": plot.title},
+                            figure=plot.fig,
+                            style=config.Plotter.graph_div_style,
+                        )
+                    )
+                    dash_graphs_2.append(
+                        dcc.Graph(
+                            id={
+                                "type": "dcc_go_2",
+                                "index": plot.title,
+                            },  # Create empty fig
+                            style=config.Plotter.graph_div_style,
+                        )
+                    )
+                return dash_graphs_1, dash_graphs_2
             else:
                 raise NotImplementedError(f"Active tab {active_tab} not implemented")
+
+        return dash.no_update
+
+    @app.callback(
+        Output({"type": "dcc_go_2", "index": MATCH}, "figure"),
+        Input({"type": "dcc_go_1", "index": MATCH}, "hoverData"),
+        State({"type": "dcc_go_1", "index": MATCH}, "id"),
+        State("dash_tabs", "active_tab"),
+        prevent_initial_call=True,
+    )
+    def update_graph2(hover_data, id, active_tab):
+        graph_title = id["index"]
+        x = int(hover_data["points"][0]["x"])
+        data_x = reader[f"{active_tab}/{graph_title}"]["data"][
+            :, x
+        ]  # Get data for time step x
+        # TODO: Make this a function in plotting.py. Make orientation configurable.
+
+        return go.Figure(go.Histogram(y=data_x)).update_layout(
+            xaxis_title="Count", yaxis_title="Value"
+        )
 
     @app.callback(
         Output("export", "n_clicks"),
@@ -121,14 +172,14 @@ def main(argv):
     def export_plots(graph_type, n_clicks):
         if graph_type is not None and n_clicks is not None:
             files = []
-            for group in plotting_groups.values():
+            for group in groups_to_plot.values():
                 files += [
                     plot.export_plot() for plot in generate_plots(group, graph_type)
                 ]
             utils.merge_pdf_files(files, config.output_filename)
             return None, dcc.send_file(config.output_filename)
 
-        return None, None
+        return dash.no_update
 
     app.run_server(debug=True)
 
