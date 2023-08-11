@@ -55,4 +55,6 @@ class BoxPlotOverTime(Plotter):
     scatter_name: str = configuration.get("BOXPLOTOVERTIME", "scatter_name")
 
 
-# HDFReader Settings
+class Histogram(Plotter):
+    x_title: str = configuration.get("HISTOGRAM", "x_title")
+    y_title: str = configuration.get("HISTOGRAM", "y_title")
