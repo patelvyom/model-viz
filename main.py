@@ -17,6 +17,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.PULSE])
 GRAPH_TYPES = {
     "Histogram 2D": plotting.Histogram2D,
     "Boxplot over Time": plotting.BoxPlotOverTime,
+    "Histogram": plotting.Histogram,
 }
 
 
@@ -109,6 +110,7 @@ def main(argv):
         Output("tab_content_2", "children"),
         Input("graph_type", "value"),
         Input("dash_tabs", "active_tab"),
+        prevent_initial_call=True,
     )
     @functools.lru_cache(maxsize=32)
     def update_graph1(graph_type, active_tab):
@@ -126,10 +128,8 @@ def main(argv):
                     )
                     dash_graphs_2.append(
                         dcc.Graph(
-                            id={
-                                "type": "dcc_go_2",
-                                "index": plot.title,
-                            },  # Create empty fig
+                            id={"type": "dcc_go_2", "index": plot.title},
+                            figure=go.Figure(),
                             style=config.Plotter.graph_div_style,
                         )
                     )
@@ -147,16 +147,14 @@ def main(argv):
         prevent_initial_call=True,
     )
     def update_graph2(hover_data, id, active_tab):
-        graph_title = id["index"]
-        x = int(hover_data["points"][0]["x"])
-        data_x = reader[f"{active_tab}/{graph_title}"]["data"][
-            :, x
-        ]  # Get data for time step x
-        # TODO: Make this a function in plotting.py. Make orientation configurable.
+        if hover_data is not None:
+            graph_title = id["index"]
+            x = int(hover_data["points"][0]["x"])
+            data = reader[f"{active_tab}/{graph_title}"]["data"]
+            fig = GRAPH_TYPES["Histogram"](data=data[:, x]).create_plot()
+            return fig
 
-        return go.Figure(go.Histogram(y=data_x)).update_layout(
-            xaxis_title="Count", yaxis_title="Value"
-        )
+        return dash.no_update
 
     @app.callback(
         Output("export", "n_clicks"),

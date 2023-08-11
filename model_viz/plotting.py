@@ -164,3 +164,28 @@ class BoxPlotOverTime(BasePlotter):
             )
         self.fig = fig
         return fig
+
+
+class Histogram(BasePlotter):
+    """
+    Simple histogram plotter.
+    """
+
+    def __init__(self, data: np.ndarray):
+        super().__init__()
+        self.data = data
+
+    def create_plot(self, **kwargs) -> go.Figure:
+        """Create a histogram plot.
+
+        Returns:
+            go.Figure: Plotly figure
+        """
+        x_title = kwargs.get("x_title", config.Histogram.x_title)
+        y_title = kwargs.get("y_title", config.Histogram.y_title)
+        fig = go.Figure(go.Histogram(y=self.data)).update_layout(  # Flipping axes
+            xaxis_title=x_title, yaxis_title=y_title
+        )
+        self.fig = fig
+
+        return fig
