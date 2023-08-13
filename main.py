@@ -174,6 +174,7 @@ def main(argv):
                     plot.export_plot() for plot in generate_plots(group, graph_type)
                 ]
             utils.merge_pdf_files(files, config.output_filename)
+            utils.delete_files(files, delete_dir=True)
             return None, dcc.send_file(config.output_filename)
 
         return dash.no_update

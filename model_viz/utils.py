@@ -1,5 +1,6 @@
 from PyPDF2 import PdfMerger
 from typing import List
+import os
 
 
 def merge_pdf_files(files: List[str], output_file: str) -> None:
@@ -15,3 +16,15 @@ def merge_pdf_files(files: List[str], output_file: str) -> None:
         merger.append(file)
     merger.write(output_file)
     merger.close()
+
+
+def delete_files(files: List[str], delete_dir=False) -> None:
+    """Delete files
+
+    Args:
+        files (list): List of files to delete
+    """
+    for file in files:
+        os.remove(file)
+    if delete_dir:
+        os.rmdir(os.path.dirname(files[0]))
