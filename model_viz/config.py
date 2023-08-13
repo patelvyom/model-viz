@@ -24,10 +24,14 @@ class Plotter:
     export_engine: str = configuration.get("PLOTTER", "export_engine")
     width: int = configuration.getint("PLOTTER", "width")
     height: int = configuration.getint("PLOTTER", "height")
+    is_xlabel_date: bool = configuration.getboolean("PLOTTER", "is_xlabel_date")
+    day_zero: str = configuration.get("PLOTTER", "day_zero")
     graph_div_style: dict = {
         "height": configuration.get("PLOTTER", "graph_div_height"),
         "width": "100%",
     }
+    theme: str = configuration.get("PLOTTER", "theme")
+    desired_tick_labels: int = configuration.getint("PLOTTER", "desired_tick_labels")
 
 
 class Histogram2D(Plotter):
