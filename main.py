@@ -8,11 +8,14 @@ import model_viz.component_factory as component_factory
 import dash
 from dash import html, dcc, Input, Output, State, MATCH
 import plotly.graph_objects as go
+import plotly.io as pio
 import functools
 import dash_bootstrap_components as dbc
 from typing import List
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.PULSE])
+app.title = "Model Viz"
+pio.templates.default = config.Plotter.theme
 
 GRAPH_TYPES = {
     "Histogram 2D": plotting.Histogram2D,
