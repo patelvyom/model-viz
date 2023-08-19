@@ -61,7 +61,7 @@ def generate_plots(
 
 def main(argv):
     reader = hdf_ops.HDFReader("reader", argv[0])
-    groups_to_plot = reader.get_groups()
+    groups_to_plot = reader.get_all_groups()
     group_tabs = {
         group: component_factory.DashTab(label=group, component_id=group)
         for group in groups_to_plot.keys()
@@ -153,8 +153,14 @@ def main(argv):
         if hover_data is not None:
             graph_title = id["index"]
             x = int(hover_data["points"][0]["x"])
-            data = reader[f"{active_tab}/{graph_title}"]["data"]
-            fig = GRAPH_TYPES["Histogram"](data=data[:, x]).create_plot()
+            group = reader.get_group(active_tab, [graph_title])
+            data = group["data"]
+            overlay_data = (
+                int(group["overlay_data"][:, x]) if "overlay_data" in group else None
+            )
+            fig = GRAPH_TYPES["Histogram"](
+                data=data[:, x], overlay_data=overlay_data
+            ).create_plot()
             return fig
 
         return dash.no_update

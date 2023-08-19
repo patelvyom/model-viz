@@ -185,8 +185,8 @@ class Histogram(BasePlotter):
     Simple histogram plotter.
     """
 
-    def __init__(self, data: np.ndarray):
-        super().__init__(data)
+    def __init__(self, data: np.ndarray, overlay_data=None):
+        super().__init__(data, overlay_data)
 
     def create_plot(self, **kwargs) -> go.Figure:
         """Create a histogram plot.
@@ -201,5 +201,12 @@ class Histogram(BasePlotter):
         ).update_layout(  # Flipping axes
             xaxis_title=x_title, yaxis_title=y_title
         )
+        if self.overlay_data is not None:
+            fig.add_hline(
+                y=self.overlay_data,
+                line_width=config.Histogram.line_width,
+                line_color=config.Histogram.line_color,
+                line_dash=config.Histogram.line_dash,
+            )
         self.fig = fig
         return fig
