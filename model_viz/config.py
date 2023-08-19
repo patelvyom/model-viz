@@ -62,3 +62,6 @@ class BoxPlotOverTime(Plotter):
 class Histogram(Plotter):
     x_title: str = configuration.get("HISTOGRAM", "x_title")
     y_title: str = configuration.get("HISTOGRAM", "y_title")
+    line_color: str = configuration.get("HISTOGRAM", "line_color")
+    line_dash: str = configuration.get("HISTOGRAM", "line_dash")
+    line_width: int = configuration.getint("HISTOGRAM", "line_width")
