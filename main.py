@@ -20,7 +20,6 @@ pio.templates.default = config.Plotter.theme
 GRAPH_TYPES = {
     "Histogram 2D": plotting.Histogram2D,
     "Boxplot over Time": plotting.BoxPlotOverTime,
-    "Histogram": plotting.Histogram,
 }
 
 
@@ -158,7 +157,7 @@ def main(argv):
             overlay_data = (
                 int(group["overlay_data"][:, x]) if "overlay_data" in group else None
             )
-            fig = GRAPH_TYPES["Histogram"](
+            fig = plotting.Histogram(
                 data=data[:, x], overlay_data=overlay_data
             ).create_plot()
             return fig

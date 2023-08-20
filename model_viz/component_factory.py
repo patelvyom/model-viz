@@ -1,8 +1,9 @@
 import dash_bootstrap_components as dbc
 from typing import List
+from abc import ABC, abstractmethod
 
 
-class DashComponentFactory:
+class DashComponentFactory(ABC):
     """
     Base class for Dash component factories
     """
@@ -12,6 +13,7 @@ class DashComponentFactory:
     def __init__(self, component_id: str):
         self.component_id = component_id
 
+    @abstractmethod
     def generate_component(self):
         raise NotImplementedError
 

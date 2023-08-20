@@ -5,9 +5,10 @@ import model_viz.config as config
 import datashader as ds
 import pandas as pd
 import plotly.express as px
+from abc import ABC, abstractmethod
 
 
-class BasePlotter:
+class BasePlotter(ABC):
     name: str = "BasePlotter"
     fig = None
     title = None
@@ -16,6 +17,7 @@ class BasePlotter:
         self.data = data
         self.overlay_data = overlay_data
 
+    @abstractmethod
     def create_plot(self, **kwargs):
         raise NotImplementedError
 
